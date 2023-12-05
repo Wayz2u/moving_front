@@ -11,8 +11,14 @@ const VideoPlayer = forwardRef(({ videoUrl, onEnd }, ref) => {
   }, [onEnd, ref]);
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center' }}>
-      <video ref={ref} width="320" height="240">
+    <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', // Vertically center the video
+        height: '100%', // Take full height of the parent container
+        overflow: 'hidden' 
+    }}>
+      <video ref={ref} style={{ width: '100%', height: 'auto', maxWidth: '360px' }}>
         <source src={videoUrl} type="video/mp4" />
         Your browser does not support the video tag.
       </video>

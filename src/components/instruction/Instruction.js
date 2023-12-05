@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Typography, Modal, Box, CircularProgress, Button} from '@mui/material';
+import { Typography, Modal, Box, CircularProgress, Button } from '@mui/material';
 
 // Simple modal component for demonstration
 const SimpleModal = ({ open, onClose, content }) => {
@@ -15,11 +15,13 @@ const SimpleModal = ({ open, onClose, content }) => {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: 400,
+        width: { xs: '80%', sm: '60%', md: '40%', lg: '30%' }, // Responsive width
         bgcolor: 'background.paper',
         border: '2px solid #000',
         boxShadow: 24,
         p: 4,
+        overflow: 'auto', // Add scroll if content is too large
+        maxHeight: '80vh', // Maximum height
       }}>
         <Typography id="simple-modal-title" variant="h6" component="h2">
           {content.title}
@@ -30,7 +32,6 @@ const SimpleModal = ({ open, onClose, content }) => {
   );
 };
 
-
 const Instruction = ({ id, buttonText, onPlayButtonClick, highlights, isActive }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({});
@@ -40,17 +41,6 @@ const Instruction = ({ id, buttonText, onPlayButtonClick, highlights, isActive }
     setModalOpen(true);
   };
 
-  const buttonStyle = {
-    my: 1, // Vertical margins, adjust as needed
-    width: '400px', // Fixed width, adjust as needed
-    height: '50px', // Fixed height, adjust as needed
-    justifyContent: 'flex-start', // Aligns text to the left
-    color: 'text.primary',
-    borderColor: 'black', // Button border color
-    pl: 2, // Padding left to push text to the right
-  };
-
-  // Function to split the text and insert highlights
   const renderTextWithHighlights = (text) => {
     const splitText = text.split(/(\s+)/).map((segment, index) => {
       const highlight = highlights.find(h => segment.includes(h.text));
@@ -70,22 +60,29 @@ const Instruction = ({ id, buttonText, onPlayButtonClick, highlights, isActive }
     return splitText;
   };
 
+  const buttonStyle = {
+    my: 1,
+    width: '100%', // Take the full width of the container
+    height: '50px',
+    justifyContent: 'flex-start',
+    color: isActive ? 'primary.main' : 'text.primary', // Text color changes when active
+    borderColor: isActive ? 'primary.main' : 'grey.300', // Outline color changes when active
+    borderWidth: isActive ? 2 : 1, // Outline thickness changes when active
+    pl: 2,
+    '&:hover': {
+      borderColor: isActive ? 'primary.dark' : 'grey.400', // Hover color changes when active
+      backgroundColor: isActive ? '' : 'background.paper', // Optional: Change background color on hover when not active
+    },
+  };
+
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-      }}
-    >
+    <>
       <Button
-        key={id}
         variant="outlined"
-        disabled={isActive}
         onClick={onPlayButtonClick}
-        startIcon={isActive ? <CircularProgress size={24} /> : null}
         sx={buttonStyle}
+        startIcon={isActive ? <CircularProgress size={24} color="primary" /> : null}
       >
         {highlights && highlights.length > 0 ? renderTextWithHighlights(buttonText) : buttonText}
       </Button>
@@ -96,7 +93,7 @@ const Instruction = ({ id, buttonText, onPlayButtonClick, highlights, isActive }
           content={modalContent}
         />
       )}
-    </Box>
+    </>
   );
 };
 
