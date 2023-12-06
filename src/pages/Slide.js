@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import VideoPlayer from '../components/animaition/Video';
 import Instruction from '../components/instruction/Instruction';
 import { Container, Paper, Typography, ThemeProvider, Accordion, AccordionSummary, AccordionDetails, Chip, Stack } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useSwipeable } from 'react-swipeable';
-
 
 const darkTheme = createTheme({
   palette: {
@@ -14,125 +14,77 @@ const darkTheme = createTheme({
 });
 
 const Slide = () => {
+  const { slideId } = useParams();
+  const [slideData, setSlideData] = useState(null);
   const [instructions, setInstructions] = useState([]);
-  const [currentVideoUrl, setCurrentVideoUrl] = useState('instruction1.mp4');
+  const [currentVideoUrl, setCurrentVideoUrl] = useState('');
   const [activeInstructionId, setActiveInstructionId] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [problemImg, setProblemImg] = useState('logo192.png');
-  const [problemTitle, setProblemText] = useState('삼각형의 닮음 6-4-1 3번')
-  const [answer, setAnswer] = useState('정답 : 2번')
+  const [problemImg, setProblemImg] = useState('');
+  const [problemTitle, setProblemText] = useState('');
+  const [answer, setAnswer] = useState('');
   const instructionsPerPage = 3;
-  const [inputText, setInputText] = useState('');
-  const [data, setData] = useState(null);
   const videoRef = useRef(null);
-
-
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => setCurrentPage(current => Math.min(current + 1, paginatedInstructions.length - 1)),
     onSwipedRight: () => setCurrentPage(current => Math.max(current - 1, 0)),
   });
 
-  const handleInputChange = (event) => {
-    setInputText(event.target.value);
-  };
-
-  // Assuming fetchedSlides is coming from an API or a static file
-  const fetchedSlides = {
-    "problemTitle": "",
-    "problemImage": "",
-    "problemAnswer": "",
-    "videoUrl": "instruction1.mp4",// 동영상 url
-    "videoLength": 8,
-    "instructions": [
-      {
-        "id": "1",
-        "text": "BC와 DE가 평행이므로 B와 D가 같습니다.",
-        "startTime": 0,
-        "highlights": []
-      },
-      {
-        "id": "2",
-        "text": "BC와 DE가 평행이므로 C와 E가 같습니다.",
-        "startTime": 2,
-        "highlights": []
-      },
-      {
-        "id": "3",
-        "text": "BCF와 DEF가  AA닮음 입니다.",
-        "startTime": 4,
-        "highlights": [
-          {
-            "text": "AA닮음",
-            "modalContent": {
-              "title": "닮음 : AA",
-              "image": "AA.png" // IMG URL
-            }
-          }
-        ]
-      },
-      {
-        "id": "4",
-        "text": "4",
-        "startTime": 6,
-        "highlights": []
-      },
-      {
-        "id": "5",
-        "text": "5",
-        "startTime": 7,
-        "highlights": []
-      },
-    ]
-  };
 
   const paginatedInstructions = [];
-  for (let i = 0; i < fetchedSlides.instructions.length; i += instructionsPerPage) {
-    paginatedInstructions.push(fetchedSlides.instructions.slice(i, i + instructionsPerPage));
+  for (let i = 0; i < slideData.instructions.length; i += instructionsPerPage) {
+    paginatedInstructions.push(slideData.instructions.slice(i, i + instructionsPerPage));
   }
 
   useEffect(() => {
-    setInstructions(fetchedSlides.instructions);
-    setCurrentVideoUrl(fetchedSlides.videoUrl);
-  }, []);
-
-  useEffect(() => {
-    // Function to fetch data from the server
+    // Fetch slide data based on slideId
     const fetchData = async () => {
       try {
-        const response = await fetch('https://capston-moving.s3.ap-northeast-2.amazonaws.com/test.json');
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const jsonData = await response.json();
-        setData(jsonData);
-        console.log(jsonData) // Update state with the fetched data
+        const response = await fetch(`https://capston-moving.s3.ap-northeast-2.amazonaws.com/json/test.json`);
+        const data = await response.json();
+        setSlideData(data)
+        setInstructions(data.instructions);
+        setCurrentVideoUrl(data.video);
+        setProblemImg(data.problemImg);
+        setProblemText(data.problemTitle);
+        setAnswer(data.problemAnswer);
       } catch (error) {
-        console.error("Fetching data failed:", error);
+        console.error('Error fetching slide data:', error);
       }
     };
 
     fetchData();
-  }, []);
+  }, [slideId]);
+  
+  // 재생관리
+  const playVideo = (instructionIndex) => {
+    const instruction = instructions[instructionIndex];
+    const nextInstruction = instructions[instructionIndex + 1];
+    const endTime = nextInstruction ? nextInstruction.startTime : videoRef.current.duration;
 
-  const playVideo = (startTime) => {
-    if (typeof startTime === 'number' && !isNaN(startTime)) {
-      if (videoRef.current) {
-        videoRef.current.currentTime = startTime;
-        videoRef.current.muted = true; // Mute the video
-        videoRef.current.play().catch(error => {
-          console.error('Error attempting to play video:', error);
-        });
-      }
-    } else {
-      console.error('Invalid start time:', startTime);
+    if (videoRef.current) {
+      videoRef.current.currentTime = instruction.startTime;
+      videoRef.current.muted = true; 
+      videoRef.current.play().catch(error => {
+        console.error('Error attempting to play video:', error);
+      });
+
+      // Set a timeout to pause the video at the end of the current instruction
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.pause();
+          setActiveInstructionId(null); // Reset the active instruction ID
+        }
+      }, (endTime - instruction.startTime) * 1000); // Convert to milliseconds
     }
   };
 
+  // 인스트럭션 관리
   useEffect(() => {
-    const interval = setInterval(() => {
+    const checkTime = () => {
       if (videoRef.current && !videoRef.current.paused) {
         const currentTime = videoRef.current.currentTime;
-        let foundActive = false;
+        let activeId = null;
 
         for (let i = 0; i < instructions.length; i++) {
           const instruction = instructions[i];
@@ -140,22 +92,22 @@ const Slide = () => {
           const endTime = nextInstruction ? nextInstruction.startTime : videoRef.current.duration;
 
           if (currentTime >= instruction.startTime && currentTime < endTime) {
-            setActiveInstructionId(instruction.id);
-            foundActive = true;
+            activeId = instruction.id;
             break;
           }
         }
 
-        if (!foundActive) {
-          setActiveInstructionId(null);
-        }
+        setActiveInstructionId(activeId);
+      } else {
+        setActiveInstructionId(null);
       }
-    }, 1000);
+    };
 
+    const interval = setInterval(checkTime, 500);
     return () => clearInterval(interval);
-  }, [instructions]);
+  }, [instructions, videoRef]);
 
-
+  // 비디오 인스트럭션 연계
   const onVideoEnd = () => {
     setActiveInstructionId(null);
   };
@@ -164,32 +116,28 @@ const Slide = () => {
     <>
       <ThemeProvider theme={darkTheme}>
         <Accordion TransitionProps={{ unmountOnExit: true }}>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1a-content"
-            id="panel1a-header"
-          >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
             <Typography>{problemTitle}</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <img src={problemImg} alt="Your Image" style={{ width: '100%', height: 'auto' }} />
+            <img src={problemImg} alt="Problem Image" style={{ width: '100%', height: 'auto' }} />
           </AccordionDetails>
         </Accordion>
       </ThemeProvider>
       <div {...swipeHandlers}>
         <Container maxWidth="md" sx={{ mt: 2 }}>
-          <Paper elevation={3} sx={{ position: 'relative', padding: '1em', marginBottom: '1em', height: '50vh'}}>
+          <Paper elevation={3} sx={{ position: 'relative', padding: '1em', marginBottom: '1em', height: '50vh' }}>
             <VideoPlayer ref={videoRef} videoUrl={currentVideoUrl} onEnd={onVideoEnd} />
             <Stack direction="row" spacing={1} sx={{ position: 'absolute', bottom: 8, right: 8 }}>
-              <Chip label={answer} color="primary" variant='outlined'/>
+              <Chip label={answer} color="primary" variant='outlined' />
             </Stack>
           </Paper>
-          {paginatedInstructions[currentPage].map((instruction) => (
+          {paginatedInstructions[currentPage].map((instruction, index) => (
             <Instruction
               key={instruction.id}
               id={instruction.id}
               buttonText={instruction.text}
-              onPlayButtonClick={() => playVideo(instruction.startTime)}
+              onPlayButtonClick={() => playVideo(index)}
               highlights={instruction.highlights}
               isActive={activeInstructionId === instruction.id}
             />

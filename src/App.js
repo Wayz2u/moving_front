@@ -6,7 +6,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Slide />} />
+      <Route path="/slide/:slideId" component={Slide} />
       </Routes>
     </BrowserRouter>
   );
