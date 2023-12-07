@@ -21,7 +21,8 @@ const VideoPlayer = forwardRef(({ videoUrl, onEnd }, ref) => {
     }}>
       <video
         ref={ref}
-        key={videoUrl} // Add this line
+        key={videoUrl}
+        playsInline
         style={{ width: '100%', height: 'auto', maxWidth: '360px' }}
       >
         <source src={videoUrl} type="video/mp4" />
