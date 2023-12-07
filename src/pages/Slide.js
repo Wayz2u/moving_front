@@ -46,8 +46,8 @@ const Slide = () => {
         const data = await response.json();
         console.log(data);
         setInstructions(data.instructions);
-        setCurrentVideoUrl(data.video);
-        setProblemImg(data.problemImg);
+        setCurrentVideoUrl(data.videoUrl);
+        setProblemImg(data.problemImage);
         setProblemText(data.problemTitle);
         setAnswer(data.problemAnswer);
         const paginated = [];
