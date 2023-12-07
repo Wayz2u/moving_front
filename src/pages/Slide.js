@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import VideoPlayer from '../components/animaition/Video';
 import Instruction from '../components/instruction/Instruction';
 import { Container, Paper, Typography, ThemeProvider, Accordion, AccordionSummary, AccordionDetails, Chip, Stack } from '@mui/material';
@@ -13,9 +13,13 @@ const darkTheme = createTheme({
   },
 });
 
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
 const Slide = () => {
-  const { slideId } = useParams();
-  const [slideData, setSlideData] = useState(null);
+  const query = useQuery();
+  const slideNumber = query.get('questionnumber');
   const [instructions, setInstructions] = useState([]);
   const [currentVideoUrl, setCurrentVideoUrl] = useState('');
   const [activeInstructionId, setActiveInstructionId] = useState(null);
@@ -23,6 +27,8 @@ const Slide = () => {
   const [problemImg, setProblemImg] = useState('');
   const [problemTitle, setProblemText] = useState('');
   const [answer, setAnswer] = useState('');
+  const [paginatedInstructions, setPaginatedInstructions] = useState([]);
+
   const instructionsPerPage = 3;
   const videoRef = useRef(null);
   const swipeHandlers = useSwipeable({
@@ -31,31 +37,32 @@ const Slide = () => {
   });
 
 
-  const paginatedInstructions = [];
-  for (let i = 0; i < slideData.instructions.length; i += instructionsPerPage) {
-    paginatedInstructions.push(slideData.instructions.slice(i, i + instructionsPerPage));
-  }
 
   useEffect(() => {
-    // Fetch slide data based on slideId
+    console.log(slideNumber);
     const fetchData = async () => {
       try {
-        const response = await fetch(`https://capston-moving.s3.ap-northeast-2.amazonaws.com/json/test.json`);
+        const response = await fetch(`https://capston-moving.s3.ap-northeast-2.amazonaws.com/${slideNumber}.json`);
         const data = await response.json();
-        setSlideData(data)
+        console.log(data);
         setInstructions(data.instructions);
         setCurrentVideoUrl(data.video);
         setProblemImg(data.problemImg);
         setProblemText(data.problemTitle);
         setAnswer(data.problemAnswer);
+        const paginated = [];
+        for (let i = 0; i < data.instructions.length; i += instructionsPerPage) {
+          paginated.push(data.instructions.slice(i, i + instructionsPerPage));
+        }
+        setPaginatedInstructions(paginated);
       } catch (error) {
         console.error('Error fetching slide data:', error);
       }
     };
 
     fetchData();
-  }, [slideId]);
-  
+  }, [slideNumber]);
+
   // 재생관리
   const playVideo = (instructionIndex) => {
     const instruction = instructions[instructionIndex];
@@ -64,7 +71,7 @@ const Slide = () => {
 
     if (videoRef.current) {
       videoRef.current.currentTime = instruction.startTime;
-      videoRef.current.muted = true; 
+      videoRef.current.muted = true;
       videoRef.current.play().catch(error => {
         console.error('Error attempting to play video:', error);
       });
@@ -112,6 +119,8 @@ const Slide = () => {
     setActiveInstructionId(null);
   };
 
+  const instructionsToRender = paginatedInstructions[currentPage] || [];
+
   return (
     <>
       <ThemeProvider theme={darkTheme}>
@@ -132,7 +141,7 @@ const Slide = () => {
               <Chip label={answer} color="primary" variant='outlined' />
             </Stack>
           </Paper>
-          {paginatedInstructions[currentPage].map((instruction, index) => (
+          {instructionsToRender.map((instruction, index) => (
             <Instruction
               key={instruction.id}
               id={instruction.id}
