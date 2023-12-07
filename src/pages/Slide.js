@@ -62,9 +62,10 @@ const Slide = () => {
   }, [slideNumber]);
 
   // 재생관리
-  const playVideo = (instructionIndex) => {
-    const instruction = instructions[instructionIndex];
-    const nextInstruction = instructions[instructionIndex + 1];
+  const playVideo = (pageIndex, indexOnPage) => {
+    const globalIndex = currentPage * instructionsPerPage + indexOnPage;
+    const instruction = instructions[globalIndex];
+    const nextInstruction = instructions[globalIndex + 1];
     const endTime = nextInstruction ? nextInstruction.startTime : videoRef.current.duration;
 
     if (videoRef.current) {
@@ -139,15 +140,17 @@ const Slide = () => {
               <Chip label={answer} color="primary" variant='outlined' />
             </Stack>
           </Paper>
-          {instructionsToRender.map((instruction, index) => (
-            <Instruction
-              key={instruction.id}
-              id={instruction.id}
-              buttonText={instruction.text}
-              onPlayButtonClick={() => playVideo(index)}
-              highlights={instruction.highlights}
-              isActive={activeInstructionId === instruction.id}
-            />
+          {instructionsToRender.map((instruction, indexOnPage) => (
+            instruction.text && (
+              <Instruction
+                key={instruction.id}
+                id={instruction.id}
+                buttonText={instruction.text}
+                onPlayButtonClick={() => playVideo(currentPage, indexOnPage)}
+                highlights={instruction.highlights}
+                isActive={activeInstructionId === instruction.id}
+              />
+            )
           ))}
         </Container>
       </div>
