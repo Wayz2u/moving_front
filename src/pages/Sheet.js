@@ -58,7 +58,7 @@ function Sheet() {
   useEffect(() => {
     const savedInputs = localStorage.getItem(`${sheetNumber}-inputs`);
     const storedAnswers = localStorage.getItem(`${sheetNumber}-answers`);
-    if (savedInputs) {
+    if (savedInputs && storedAnswers) {
       setUserInputs(JSON.parse(savedInputs));
       const data = JSON.parse(storedAnswers);
       setAnswers(data[0]);

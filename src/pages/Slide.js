@@ -39,7 +39,6 @@ const Slide = () => {
 
 
   useEffect(() => {
-    console.log(slideNumber);
     const fetchData = async () => {
       try {
         const response = await fetch(`https://capston-moving.s3.ap-northeast-2.amazonaws.com/${slideNumber}.json`);

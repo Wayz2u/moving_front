@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { Typography, Modal, Box, CircularProgress, Button } from '@mui/material';
 
 const getYoutubeVideoId = (url) => {
-  // This function extracts the YouTube video ID from a URL
-  const regExp = /^.*(youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-
+  if (!url) return null;
+  const regex = /^.*(youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([^#\&\?]*).*/;
+  const match = url.match(regex);
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
 const SimpleModal = ({ open, onClose, content }) => {
-  const videoId = getYoutubeVideoId(content.videoUrl);
+  console.log(content)
+  const videoId = content && content.image ? getYoutubeVideoId(content.image) : null;
 
   return (
     <Modal
@@ -56,63 +56,63 @@ const Instruction = ({ id, buttonText, onPlayButtonClick, highlights, isActive }
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({});
 
+  // Responsive button style
+  const buttonStyle = {
+    my: 1,
+    justifyContent: 'flex-start',
+    color: 'text.primary',
+    borderColor: 'black',
+    pl: 2,
+    padding: '10px 20px',
+    width: { // Responsive width
+      xs: '100%', // full width on extra-small devices
+      sm: '100%', // fixed width on small devices and up
+      md: '100%', // fixed width on medium devices and up
+      lg: '100%', // fixed width on large devices and up
+    },
+  };
+
   const handleHighlightClick = (highlight) => {
     setModalContent(highlight.modalContent);
     setModalOpen(true);
   };
 
   const renderTextWithHighlights = (text) => {
-    const splitText = text.split(/(\s+)/).map((segment, index) => {
+    return text.split(/(\s+)/).map((segment, index) => {
       const highlight = highlights.find(h => segment.includes(h.text));
       if (highlight) {
         return (
-          <span
-            key={index}
-            style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}
-            onClick={() => handleHighlightClick(highlight)}
-          >
+          <span key={index} style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}
+                onClick={() => handleHighlightClick(highlight)}>
             {highlight.text}
           </span>
         );
       }
       return segment;
     });
-    return splitText;
   };
-
-  const buttonStyle = {
-    my: 1,
-    width: '100%', // Take the full width of the container
-    height: '50px',
-    justifyContent: 'flex-start',
-    color: isActive ? 'primary.main' : 'text.primary', // Text color changes when active
-    borderColor: isActive ? 'primary.main' : 'grey.300', // Outline color changes when active
-    borderWidth: isActive ? 2 : 1, // Outline thickness changes when active
-    pl: 2,
-    '&:hover': {
-      borderColor: isActive ? 'primary.dark' : 'grey.400', // Hover color changes when active
-      backgroundColor: isActive ? '' : 'background.paper', // Optional: Change background color on hover when not active
-    },
-  };
-
 
   return (
     <>
-      <Button
-        variant="outlined"
-        onClick={onPlayButtonClick}
-        sx={buttonStyle}
-        startIcon={isActive ? <CircularProgress size={24} color="primary" /> : null}
-      >
-        {highlights && highlights.length > 0 ? renderTextWithHighlights(buttonText) : buttonText}
-      </Button>
-      {modalOpen && (
-        <SimpleModal
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          content={modalContent}
-        />
-      )}
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+        <Button
+          key={id}
+          variant="outlined"
+          disabled={isActive}
+          onClick={onPlayButtonClick}
+          startIcon={isActive ? <CircularProgress size={24} /> : null}
+          sx={buttonStyle}
+        >
+          {highlights && highlights.length > 0 ? renderTextWithHighlights(buttonText) : buttonText}
+        </Button>
+        {modalOpen && (
+          <SimpleModal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            content={modalContent}
+          />
+        )}
+      </Box>
     </>
   );
 };
