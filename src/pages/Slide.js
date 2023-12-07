@@ -44,7 +44,6 @@ const Slide = () => {
       try {
         const response = await fetch(`https://capston-moving.s3.ap-northeast-2.amazonaws.com/${slideNumber}.json`);
         const data = await response.json();
-        console.log(data);
         setInstructions(data.instructions);
         setCurrentVideoUrl(data.videoUrl);
         setProblemImg(data.problemImage);

@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import { Typography, Modal, Box, CircularProgress, Button } from '@mui/material';
 
-// Simple modal component for demonstration
+const getYoutubeVideoId = (url) => {
+  // This function extracts the YouTube video ID from a URL
+  const regExp = /^.*(youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
 const SimpleModal = ({ open, onClose, content }) => {
+  const videoId = getYoutubeVideoId(content.videoUrl);
+
   return (
     <Modal
       open={open}
@@ -15,22 +24,33 @@ const SimpleModal = ({ open, onClose, content }) => {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: { xs: '80%', sm: '60%', md: '40%', lg: '30%' }, // Responsive width
+        width: { xs: '80%', sm: '60%', md: '40%', lg: '30%' },
         bgcolor: 'background.paper',
         border: '2px solid #000',
         boxShadow: 24,
         p: 4,
-        overflow: 'auto', // Add scroll if content is too large
-        maxHeight: '80vh', // Maximum height
+        overflow: 'auto',
+        maxHeight: '80vh',
       }}>
         <Typography id="simple-modal-title" variant="h6" component="h2">
           {content.title}
         </Typography>
-        <img src={content.image} alt={content.title} style={{ width: '100%', marginTop: '1em' }} />
+        {videoId && (
+          <iframe
+            width="100%"
+            height="315"
+            src={`https://www.youtube.com/embed/${videoId}`}
+            title={content.title}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        )}
       </Box>
     </Modal>
   );
 };
+
 
 const Instruction = ({ id, buttonText, onPlayButtonClick, highlights, isActive }) => {
   const [modalOpen, setModalOpen] = useState(false);

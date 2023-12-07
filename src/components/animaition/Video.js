@@ -2,11 +2,14 @@ import React, { forwardRef, useEffect } from 'react';
 
 const VideoPlayer = forwardRef(({ videoUrl, onEnd }, ref) => {
   useEffect(() => {
-    console.log("Video URL:", videoUrl);
-    if (ref.current) {
-      ref.current.addEventListener('ended', onEnd);
+    const videoElement = ref.current;
+    if (videoElement) {
+      videoElement.addEventListener('ended', onEnd);
+
       return () => {
-        ref.current.removeEventListener('ended', onEnd);
+        if (videoElement) {
+          videoElement.removeEventListener('ended', onEnd);
+        }
       };
     }
   }, [onEnd, ref]);
