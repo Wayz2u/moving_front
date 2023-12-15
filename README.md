@@ -101,8 +101,8 @@ frontend:
 
 
 ### How to access Specific page using Amplify
-* http://your-amplify-url/slide/{slidenumber} 
-* http://your-amplify-url/sheet/{sheetnumber} 
+* http://your-amplify-url/slide?questionnumber{slidenumber}  
+* http://your-amplify-url/sheet?sheetnumber{sheetnumber} 
 
 
 
