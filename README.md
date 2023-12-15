@@ -96,8 +96,8 @@ frontend:
 ```
 
 ### How to access Specific page in local
-* http://localhost:3000/slide/{slidenumber} 
-* http://localhost:3000/sheet/{sheetnumber} 
+* http://localhost:3000/slide?questionnumber{slidenumber} 
+* http://localhost:3000/sheet?sheetnumber{sheetnumber} 
 
 
 ### How to access Specific page using Amplify
